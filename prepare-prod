@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Prepares installation in the "deployment" (prod) environment
+# Called by ansible during installation
+
+cd `dirname "$0"`
+
+./npm-ci && ./npm-build && cp .git-tag .prepared-git-tag

@@ -1,0 +1,9 @@
+/node_modules/
+/dist/
+/logs/
+/temp/
+/coverage/
+/.nyc_output/
+/.git-tag
+/.prepared-git-tag
+.#*

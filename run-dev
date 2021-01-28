@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Use to run akki in dev environment
+
+cd `dirname "$0"`
+
+export AKJS_APP_VERSION=$(git describe --tags --always)
+
+echo "Use environment variable AKJS_NEXTION_PORT to override NEXTION USB port in dev environment."
+
+npm run dev

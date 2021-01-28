@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Runs "npm build" to compile typescript into javascript
+
+cd `dirname "$0"`
+
+npm run clean
+

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Run unit tests with coverage
+
+cd `dirname "$0"`
+npm run test:coverage
+
+echo "\n======================================\nSEE ./coverage DIRECTORY FOR RESULTS!\n======================================\n"

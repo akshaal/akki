@@ -1,0 +1,2 @@
+Originally it was a copy of https://github.com/boneskull/nextion.
+Later on, the content of the directory got some changes... like minor modifications to make it typescript-friendly while keeping what's really needed and some bug fixes.

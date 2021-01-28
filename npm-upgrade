@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Upgrades npm dependencies.
+
+cd `dirname "$0"`
+
+./node_modules/.bin/npm-upgrade "$@"

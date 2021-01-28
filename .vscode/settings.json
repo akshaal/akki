@@ -1,0 +1,43 @@
+{
+    "mochaExplorer.files": "**/*.spec.ts",
+    "mochaExplorer.require": ["ts-node/register", "tsconfig-paths/register"],
+    "mochaExplorer.cwd": "src/js",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "cSpell.words": [
+        "AKKI",
+        "Accum",
+        "Akjs",
+        "Grafana",
+        "Nextion",
+        "OLLEH",
+        "Typesafe",
+        "UART",
+        "autodetect",
+        "autodetection",
+        "backreference",
+        "bkcmd",
+        "bson",
+        "camelcase",
+        "eeprom",
+        "gargs",
+        "hrtime",
+        "maxsize",
+        "nanos",
+        "nonoctal",
+        "pify",
+        "precommit",
+        "printf",
+        "proto",
+        "quantile",
+        "readonly",
+        "serialport's",
+        "thenable",
+        "tsyringe",
+        "usbserial"
+    ],
+    "git.ignoreLimitWarning": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}

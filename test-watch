@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Run unit tests and watch for changes
+
+cd `dirname "$0"`
+
+npm run test:watch

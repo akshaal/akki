@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Runs npm install (also updates package-lock.json).
+# Should only be used in dev environment,
+# Use "./prepare-prod" (that runs ./npm-ci) in a "deployment" environment.
+
+cd `dirname "$0"`
+
+npm install
+

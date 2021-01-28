@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Called in "deployment" (prod) environment to start the application
+
+cd `dirname "$0"`
+
+export AKJS_APP_VERSION=$(git describe --tags --always 2>/dev/null || cat .git-tag)
+
+npm run start

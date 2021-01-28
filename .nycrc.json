@@ -1,0 +1,11 @@
+{
+    "cache": false,
+    "extension": [".ts"],
+    "check-coverage": true,
+    "include": ["src/**"],
+    "exclude": ["**/*.spec.ts", "**/*.js"],
+    "statements": 90,
+    "branches": 80,
+    "functions": 95,
+    "lines": 90
+}
