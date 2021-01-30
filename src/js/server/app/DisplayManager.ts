@@ -12,8 +12,6 @@ export class DisplayManager {
         scheduler: Scheduler,
     ) {
         lifecycleEvents.postConstruct$.subscribe(() => {
-            nextionDisplayService.setText({ element: 'x', value: 'y' });
-
             // TODO: ...
             timer(0, 1000, scheduler.rxjsScheduler)
                 .pipe(lifecycleEvents.takeUntilDestroyed())
