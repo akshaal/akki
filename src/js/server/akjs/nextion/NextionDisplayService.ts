@@ -256,7 +256,7 @@ export class NextionDisplayService extends BaseNextionDisplayService {
                 this._writeNextValueIfCan();
             })
             .catch((reason: unknown) => {
-                this._logger.error('Failed set value!', { name, value, reason });
+                this._logger.error('Failed to set value!', { name, value, reason });
                 this._close();
             })
             .finally(() => {
