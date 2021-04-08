@@ -1,0 +1,34 @@
+#!/bin/sh
+
+OCTO_BIND_INTF="127.0.0.1:6080"
+
+D=$(dirname "$0")
+cd "$D"
+
+SHARED_D=$(realpath "$D/../../akki-test-env-docker-shared")
+mkdir -p "$SHARED_D"
+
+IMG="akshaal/akki-test-env"
+AKKI_VERSION=$(git describe --tags --always)
+
+P_UID=$(id --user)
+P_GID=$(id --group)
+
+. ./docker-ext-image-versions.env
+
+AKKI_VERSION=$(git describe --tags --always)
+
+./build || exit 200
+
+echo "\n\n--------------------------------------------\n\n"
+echo "Running as $P_UID:$P_GID"
+echo "Mounting $SHARED_D as /tmp/shared in container"
+echo "Octoprint on host is available via http://$OCTO_BIND_INTF"
+echo ""
+
+docker run --user "$P_UID:$P_GID" \
+            -p "$OCTO_BIND_INTF:8080" \
+            --mount type=bind,source="$SHARED_D",target=/tmp/shared \
+            -it \
+            --rm \
+            "$IMG:$AKKI_VERSION"
