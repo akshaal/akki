@@ -320,7 +320,7 @@ describe('NextionDisplayService', () => {
 
         expLogs.push(
             {
-                msg: 'Failed set value!',
+                msg: 'Failed to set value!',
                 arg: {
                     name: 'y.txt',
                     value: '"b"',
