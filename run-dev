@@ -7,5 +7,11 @@ cd `dirname "$0"`
 export AKJS_APP_VERSION=$(git describe --tags --always)
 
 echo "Use environment variable AKJS_NEXTION_PORT to override NEXTION USB port in dev environment."
+echo "Use environment variable AKKI_KLIPPER_API_UDS to override Klipper API endpoint (unix socket)."
+
+if test "x$AKKI_KLIPPER_API_UDS" = "x"; then
+    export AKKI_KLIPPER_API_UDS="../akki-test-env-docker-shared/klippy_uds"
+    ls "$AKKI_KLIPPER_API_UDS"
+fi
 
 npm run dev

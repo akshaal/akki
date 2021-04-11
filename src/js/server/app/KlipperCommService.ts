@@ -74,7 +74,7 @@ export class KlipperCommService {
 
                 const endSub = obs.end$.subscribe(() => {
                     if (!socket.destroyed) {
-                        socket.destroy();
+                        this.reconnect();
                     }
                 });
 
@@ -155,6 +155,12 @@ export class KlipperCommService {
             return 'sent';
         } else {
             return 'disconnected';
+        }
+    }
+
+    public reconnect(): void {
+        if (this._currentSocket) {
+            this._currentSocket.destroy();
         }
     }
 }
