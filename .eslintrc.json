@@ -64,7 +64,7 @@
         "@typescript-eslint/explicit-function-return-type": "warn",
         "@typescript-eslint/no-confusing-non-null-assertion": "warn",
         "@typescript-eslint/no-confusing-void-expression": "warn",
-        "@typescript-eslint/no-invalid-void-type": "warn",
+        "@typescript-eslint/no-invalid-void-type": "off",
         "@typescript-eslint/no-unnecessary-condition": "warn",
         "@typescript-eslint/prefer-for-of": "warn",
         "@typescript-eslint/prefer-includes": "warn",
