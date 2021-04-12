@@ -44,7 +44,7 @@ export class KlipperProtocolService {
                     tap({
                         error: () => {
                             if (klipperCommService.reconnect() === 'reconnecting') {
-                                logger.error('It seems like Klipper stop answering. Reconnecting.', {
+                                logger.error('It seems like Klipper stopped answering. Reconnecting.', {
                                     maxInactivityMs,
                                 });
                             }
