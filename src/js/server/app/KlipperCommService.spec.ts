@@ -61,7 +61,8 @@ describe('KlipperCommService', () => {
             '/a/b',
             '100',
         );
-        service.reconnect$.subscribe(() => events.push('reconnect'));
+        service.connected$.subscribe(() => events.push('connected'));
+        service.disconnected$.subscribe(() => events.push('disconnected'));
         service.response$.subscribe((txt) => events.push(`response: ${txt}`));
 
         const expectedWrites: any[] = [];
@@ -91,7 +92,7 @@ describe('KlipperCommService', () => {
         // connect
         obs1.connect$.next();
 
-        expectedEvents.push('reconnect');
+        expectedEvents.push('connected');
         check();
 
         // clock
@@ -133,6 +134,7 @@ describe('KlipperCommService', () => {
             msg: 'Klipper API socket closed with an error'
         });
 
+        expectedEvents.push('disconnected');
         expectedDestroyed += 1;
         check();        
 
@@ -154,7 +156,7 @@ describe('KlipperCommService', () => {
 
         // socket2 connected
         obs2.connect$.next();
-        expectedEvents.push('reconnect');
+        expectedEvents.push('connected');
         check();
 
         expectedWrites.push('abc5', Buffer.of(3));
@@ -168,6 +170,8 @@ describe('KlipperCommService', () => {
 
         obs2.close$.next(false);
         expectedDestroyed += 1;
+        expectedEvents.push('disconnected');
+
         check();
 
         expect(service.send('abc')).to.be.equal('disconnected');
@@ -179,6 +183,7 @@ describe('KlipperCommService', () => {
 
         // no way to send something in disconnected mode
         expect(service.send('abc')).to.be.equal('disconnected');
+        expect(service.reconnect()).to.be.equal('disconnected');
 
         // reconnect time
         dateService.addMilliseconds(51);
@@ -188,7 +193,7 @@ describe('KlipperCommService', () => {
 
         // socket3 connected
         obs3.connect$.next();
-        expectedEvents.push('reconnect');
+        expectedEvents.push('connected');
         check();
 
         // Teardown everything

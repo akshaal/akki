@@ -1,7 +1,7 @@
 import { Injectable } from 'injection-js';
-import { KlipperCommService } from './KlipperCommService';
+import { KlipperProtocolService } from './KlipperProtocolService';
 
 @Injectable()
 export class KlipperService {
-    public constructor(klipperCommService: KlipperCommService) {}
+    public constructor(klipperProtocolService: KlipperProtocolService) {}
 }

@@ -4,6 +4,7 @@ import { ExpressAppModule } from '../akjs/express-app/ExpressAppModule';
 import { NextionModule } from '../akjs/nextion/NextionModule';
 import { DisplayManager } from './DisplayManager';
 import { ENV_KLIPPER_API_RECONNECT_DELAY_MS, ENV_KLIPPER_API_UDS, KlipperCommService } from './KlipperCommService';
+import { ENV_KLIPPER_API_MAX_INACTIVITY_MS, KlipperProtocolService } from './KlipperProtocolService';
 import { KlipperService } from './KlipperService';
 
 // Don't modify this module unless you don't care about merge conflict with upstream / master branch.
@@ -13,6 +14,7 @@ export const AppModule = new AkModule('app', [ExpressAppModule, NextionModule, N
     defs
         .bootstrap(DisplayManager)
         .withFactory(ENV_KLIPPER_API_UDS.asFactoryProvider())
+        .withFactory(ENV_KLIPPER_API_MAX_INACTIVITY_MS.asFactoryProvider())
         .withFactory(ENV_KLIPPER_API_RECONNECT_DELAY_MS.asFactoryProvider())
-        .with(KlipperCommService, KlipperService),
+        .with(KlipperCommService, KlipperProtocolService, KlipperService),
 );

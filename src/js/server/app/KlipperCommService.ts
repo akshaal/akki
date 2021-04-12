@@ -32,12 +32,14 @@ const SEP_BYTE_BUFFER = Buffer.of(SEP_BYTE);
 @Injectable()
 export class KlipperCommService {
     private readonly _responseSubject = new Subject<string>();
-    private readonly _reconnectSubject = new Subject<void>();
+    private readonly _connectedSubject = new Subject<void>();
+    private readonly _disconnectedSubject = new Subject<void>();
     private _pendingBuffers: Buffer[] = [];
     private _currentSocket: net.Socket | undefined;
 
     public readonly response$: Observable<string> = this._responseSubject;
-    public readonly reconnect$: Observable<void> = this._reconnectSubject;
+    public readonly connected$: Observable<void> = this._connectedSubject;
+    public readonly disconnected$: Observable<void> = this._disconnectedSubject;
 
     public constructor(
         scheduler: Scheduler,
@@ -111,6 +113,7 @@ export class KlipperCommService {
         lifecycleEvents.postConstruct$.subscribe(() => {
             socketEvent$.subscribe((event) => {
                 if (event.kind === 'closed') {
+                    this._disconnectedSubject.next();
                     this._currentSocket = undefined;
                     this._pendingBuffers = [];
                     if (event.error) {
@@ -118,7 +121,7 @@ export class KlipperCommService {
                     }
                 } else if (event.kind === 'connected') {
                     this._currentSocket = event.socket;
-                    this._reconnectSubject.next();
+                    this._connectedSubject.next();
                 } else {
                     let startIdx = 0;
                     let cont = true;
@@ -158,9 +161,12 @@ export class KlipperCommService {
         }
     }
 
-    public reconnect(): void {
+    public reconnect(): 'reconnecting' | 'disconnected' {
         if (this._currentSocket) {
             this._currentSocket.destroy();
+            return 'reconnecting';
+        } else {
+            return 'disconnected';
         }
     }
 }
