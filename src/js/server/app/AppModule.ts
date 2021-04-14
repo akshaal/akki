@@ -1,3 +1,4 @@
+import { NanoIdModule } from 'server/akjs/nanoid/NanoIdModule';
 import { NetModule } from 'server/akjs/net/NetModule';
 import { AkModule } from '../akjs/container/AkModule';
 import { ExpressAppModule } from '../akjs/express-app/ExpressAppModule';
@@ -10,7 +11,7 @@ import { KlipperService } from './KlipperService';
 // Don't modify this module unless you don't care about merge conflict with upstream / master branch.
 // Customization is supposed to be done using ./index.ts or CustomAppModule.ts.
 
-export const AppModule = new AkModule('app', [ExpressAppModule, NextionModule, NetModule], (defs) =>
+export const AppModule = new AkModule('app', [ExpressAppModule, NextionModule, NetModule, NanoIdModule], (defs) =>
     defs
         .bootstrap(DisplayManager)
         .withFactory(ENV_KLIPPER_API_UDS.asFactoryProvider())

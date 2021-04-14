@@ -17,10 +17,12 @@
     "keywords": [],
     "author": "",
     "dependencies": {
+        "@types/nanoid": "^2.1.0",
         "bin-protocol": "^3.1.1",
         "bson": "^4.2.2",
         "express": "^4.17.1",
         "injection-js": "^2.4.0",
+        "nanoid": "^3.1.22",
         "on-finished": "^2.3.0",
         "p-map-series": "^2.1.0",
         "pify": "^5.0.0",
