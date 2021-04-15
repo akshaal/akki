@@ -1,10 +1,11 @@
 import { Inject, Injectable } from 'injection-js';
-import { Observable, Subscriber } from 'rxjs';
-import { retry, tap, timeout } from 'rxjs/operators';
+import { Observable, of, Subscriber } from 'rxjs';
+import { catchError, retry, tap, timeout } from 'rxjs/operators';
 import { EnvToken } from 'server/akjs/core/EnvToken';
 import { LifecycleEvents } from 'server/akjs/core/LifecycleEvents';
 import { Logger } from 'server/akjs/core/Logger';
 import { Scheduler } from 'server/akjs/core/Scheduler';
+import { hasProperty } from 'server/akjs/misc/hasProperty';
 import { NanoIdService } from 'server/akjs/nanoid/NanoIdService';
 import { KlipperCommService } from './KlipperCommService';
 
@@ -15,6 +16,10 @@ export const ENV_KLIPPER_API_MAX_INACTIVITY_MS = new EnvToken({
     defaultValue: '5000',
 });
 
+// TODO: Subscriptions
+
+// NOTE: no-reply means that request is sent to the klipper, but no response received.
+// NOTE: while 'disconnected' means that request is not even sent.
 type RequestOutcome =
     | Readonly<{ kind: 'result'; result: unknown }>
     | Readonly<{ kind: 'error'; error: unknown }>
@@ -32,8 +37,8 @@ export class KlipperProtocolService {
     public constructor(
         private readonly _klipperCommService: KlipperCommService,
         private readonly _lifecycleEvents: LifecycleEvents,
-        scheduler: Scheduler,
-        logger: Logger,
+        private readonly _scheduler: Scheduler,
+        private readonly _logger: Logger,
         nanoIdService: NanoIdService,
         @Inject(ENV_KLIPPER_API_MAX_INACTIVITY_MS) maxInactivityMsStr: string,
     ) {
@@ -53,11 +58,11 @@ export class KlipperProtocolService {
             // Reconnect if klipper is stuck and there is no response within an interval
             _klipperCommService.response$
                 .pipe(
-                    timeout(maxInactivityMs, scheduler.rxjsScheduler),
+                    timeout(maxInactivityMs, _scheduler.rxjsScheduler),
                     tap({
                         error: () => {
                             if (_klipperCommService.reconnect() === 'reconnecting') {
-                                logger.error('It seems like Klipper stopped answering. Reconnecting.', {
+                                _logger.error('It seems like Klipper stopped answering. Reconnecting.', {
                                     maxInactivityMs,
                                 });
                             }
@@ -70,10 +75,39 @@ export class KlipperProtocolService {
         });
     }
 
-    private _handleDisconnect(): void {}
+    private _handleDisconnect(): void {
+        // See NOTE for the type RequestOutcome for difference between 'disconnected ' and 'no-reply' with reason 'disconnected'.
+        const outcome: RequestOutcome = { kind: 'no-reply', reason: 'disconnected' };
+        for (const subscriber of this._reqInProgressSubById.values()) {
+            subscriber.next(outcome);
+            subscriber.complete();
+        }
+    }
 
-    private _handleResponse(resp: string): void {
-        console.log("resp", resp);
+    private _handleResponse(response: string): void {
+        const obj: unknown = JSON.parse(response);
+        const id = hasProperty(obj, 'id') && typeof obj.id === 'string' ? obj.id : '';
+        const subscriber = this._reqInProgressSubById.get(id);
+
+        if (subscriber) {
+            let outcome: RequestOutcome;
+            const result = hasProperty(obj, 'result') && typeof obj.result === 'object' ? obj.result : undefined;
+            if (typeof result === 'object') {
+                outcome = { kind: 'result', result };
+            } else {
+                const error = hasProperty(obj, 'error') && typeof obj.error === 'object' ? obj.error : undefined;
+                if (typeof error === 'object') {
+                    outcome = { kind: 'error', error };
+                } else {
+                    outcome = { kind: 'no-reply', reason: 'Strange response' };
+                    this._logger.error('Strange response from Klipper', { resp: response });
+                }
+            }
+            subscriber.next(outcome);
+            subscriber.complete();
+        } else {
+            this._logger.error('Strange response from Klipper', { resp: response });
+        }
     }
 
     /**
@@ -83,17 +117,13 @@ export class KlipperProtocolService {
     public request(req: Readonly<{ method: string; params: unknown; timeoutMs: number }>): Observable<RequestOutcome> {
         const { method, params, timeoutMs } = req;
 
-        // TODO: Timeout
         return new Observable<RequestOutcome>((subscriber) => {
             this._requestCount += 1;
             const id = `${this._idBase}-${this._requestCount}`;
 
             const reqStr = JSON.stringify({ id, method, params });
 
-            console.log('requested', id, reqStr);
-
             if (this._klipperCommService.send(reqStr) === 'sent') {
-                console.log("sent");
                 this._reqInProgressSubById.set(id, subscriber);
             } else {
                 subscriber.next('disconnected');
@@ -102,9 +132,12 @@ export class KlipperProtocolService {
 
             // Teardown function
             return (): void => {
-                console.log('tearing down', id);
                 this._reqInProgressSubById.delete(id);
             };
-        }).pipe(this._lifecycleEvents.takeUntilDestroyed());
+        }).pipe(
+            timeout(timeoutMs, this._scheduler.rxjsScheduler),
+            catchError(() => of<RequestOutcome>({ kind: 'no-reply', reason: 'Timeout' })),
+            this._lifecycleEvents.takeUntilDestroyed(),
+        );
     }
 }

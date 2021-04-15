@@ -20,7 +20,11 @@ export class KlipperService {
     private _handleConnect(): void {
         // TODO: params { "client_info": { "version": "v1"} }
         // TODO: timeout value
-        this._klipperProtocolService.request({ method: 'info', params: {}, timeoutMs: 3000 }).subscribe(outcome => {
+        this._klipperProtocolService.request({ method: 'info', params: {}, timeoutMs: 8000 }).subscribe(outcome => {
+            console.log("Outcome", outcome);
+        });
+
+        this._klipperProtocolService.request({ method: 'info2', params: {}, timeoutMs: 8000 }).subscribe(outcome => {
             console.log("Outcome", outcome);
         });
     }
