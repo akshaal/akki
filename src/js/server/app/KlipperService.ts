@@ -20,12 +20,22 @@ export class KlipperService {
     private _handleConnect(): void {
         // TODO: params { "client_info": { "version": "v1"} }
         // TODO: timeout value
-        this._klipperProtocolService.request({ method: 'info', params: {}, timeoutMs: 8000 }).subscribe(outcome => {
-            console.log("Outcome", outcome);
-        });
+        this._klipperProtocolService
+            .makeKlipperRequest({ method: 'info', params: {}, timeoutMs: 8000 })
+            .subscribe((outcome) => {
+                console.log('info Outcome', outcome);
+            });
 
-        this._klipperProtocolService.request({ method: 'info2', params: {}, timeoutMs: 8000 }).subscribe(outcome => {
-            console.log("Outcome", outcome);
-        });
+        this._klipperProtocolService
+            .makeKlipperRequest({ method: 'info2', params: {}, timeoutMs: 8000 })
+            .subscribe((outcome) => {
+                console.log('info2 Outcome', outcome);
+            });
+
+        this._klipperProtocolService
+            .subscribeKlipper({ method: 'gcode/subscribe_output', params: {} })
+            .subscribe((outcome) => {
+                console.log('gcode output', outcome);
+            });
     }
 }

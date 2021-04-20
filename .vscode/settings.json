@@ -21,6 +21,7 @@
         "camelcase",
         "eeprom",
         "gargs",
+        "gcode",
         "hrtime",
         "klippy",
         "maxsize",
