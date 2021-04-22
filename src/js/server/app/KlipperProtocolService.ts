@@ -83,7 +83,7 @@ export class KlipperProtocolService {
     private _handleDisconnect(): void {
         // See NOTE for the type RequestOutcome for difference between 'disconnected ' and 'no-reply' with reason 'disconnected'.
         // The map will be cleared from teardown method, no need to clear it here.
-        const outcome: RequestOutcome = { kind: 'no-reply', reason: 'disconnected' };
+        const outcome: RequestOutcome = { kind: 'no-reply', reason: 'Disconnected' };
         for (const subscriber of this._reqInProgressSubById.values()) {
             subscriber.next(outcome);
             subscriber.complete();
@@ -97,7 +97,14 @@ export class KlipperProtocolService {
     }
 
     private _handleResponse(response: string): void {
-        const obj: unknown = JSON.parse(response);
+        let obj: unknown;
+        try {
+            obj = JSON.parse(response);
+        } catch (exc) {
+            this._logger.error('Unable to parse json response', { response });
+            return;
+        }
+
         const id = hasProperty(obj, 'id') && typeof obj.id === 'string' ? obj.id : '';
         const subscriber = this._reqInProgressSubById.get(id);
 
@@ -115,7 +122,7 @@ export class KlipperProtocolService {
                     outcome = { kind: 'error', error };
                 } else {
                     outcome = { kind: 'no-reply', reason: 'Strange response' };
-                    this._logger.error('Strange response from Klipper', { resp: response });
+                    this._logger.error('Strange response from Klipper', { response });
                 }
             }
             subscriber.next(outcome);
@@ -128,7 +135,7 @@ export class KlipperProtocolService {
             if (akkiSubId && subj && typeof params === 'object') {
                 subj.next(params);
             } else {
-                this._logger.error('Strange response from Klipper', { resp: response });
+                this._logger.error('Strange response from Klipper', { response });
             }
         }
     }
@@ -175,7 +182,7 @@ export class KlipperProtocolService {
         this._klipperSubscriptionById.set(akkiSubId, subj);
 
         const error = (reason: string, details?: unknown): void => {
-            this._logger.error(`Unable to subscribe to ${method}: ${reason}`, details);
+            this._logger.error(`Unable to subscribe: ${reason}`, details);
             subj.complete();
             this._klipperSubscriptionById.delete(akkiSubId);
         };
@@ -186,11 +193,13 @@ export class KlipperProtocolService {
             timeoutMs: SUBSCRIBE_TIMEOUT_MS,
         }).subscribe((outcome) => {
             if (outcome === 'disconnected') {
-                error('Klipper is already disconnected.');
+                error('Klipper is already disconnected.', { req });
             } else if (outcome.kind === 'no-reply') {
-                error(`No reply from Klipper: ${outcome.reason}.`);
+                error(`No reply from Klipper: ${outcome.reason}.`, { req });
             } else if (outcome.kind === 'error') {
-                error(`Error from Klipper.`, { error: outcome.error });
+                error(`Error from Klipper.`, { error: outcome.error, req });
+            } else {
+                subj.next(outcome.result);
             }
         });
 
