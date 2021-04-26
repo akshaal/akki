@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "test:watch",
+			"problemMatcher": [
+				"$tsc-watch"
+			],
+			"group": "build",
+			"label": "npm: test:watch",
+			"detail": "NODE_ENV=test TS_NODE_CACHE_DIRECTORY=temp/ts-node-cache NODE_PATH=./dist ts-mocha --require source-map-support/register -w --watch-files \"./src/**/*.ts\" --paths -p ./tsconfig.json **/*.spec.ts",
+			"isBackground": true
+		}
+	]
+}

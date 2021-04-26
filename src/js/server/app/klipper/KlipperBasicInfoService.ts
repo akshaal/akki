@@ -4,7 +4,7 @@ import { KlipperCommService } from './KlipperCommService';
 import { KlipperProtocolService } from './KlipperProtocolService';
 
 @Injectable()
-export class KlipperService {
+export class KlipperBasicInfoService {
     public constructor(
         private readonly _klipperProtocolService: KlipperProtocolService,
         klipperCommService: KlipperCommService,
