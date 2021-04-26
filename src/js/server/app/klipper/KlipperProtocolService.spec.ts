@@ -116,8 +116,8 @@ describe('KlipperProtocolService', () => {
             r2 = v;
         });
 
-        expect(r1).to.be.equal('disconnected');
-        expect(r2).to.be.equal('disconnected');
+        expect(r1).to.be.deep.equal({ kind: 'disconnected', req: { method: 'a', timeoutMs: 10 } });
+        expect(r2).to.be.deep.equal({ kind: 'disconnected', req: { method: 'b', params: { x: 23 }, timeoutMs: 10 } });
 
         expect(sub1.closed).to.equal(true);
         expect(sub2.closed).to.equal(true);
@@ -196,16 +196,20 @@ describe('KlipperProtocolService', () => {
 
         await env.lifecycleEvents.onBootstrapPostConstruct();
 
+        const req1 = { method: 'a', timeoutMs: 10 };
+        const req2 = { method: 'b', timeoutMs: 10 };
+        const req3 = { method: 'b', timeoutMs: 10 };
+
         let r1: unknown;
         let r2: unknown;
         let r3: unknown;
-        const sub1 = service.makeKlipperRequest({ method: 'a', timeoutMs: 10 }).subscribe((v) => {
+        const sub1 = service.makeKlipperRequest(req1).subscribe((v) => {
             r1 = v;
         });
-        const sub2 = service.makeKlipperRequest({ method: 'b', timeoutMs: 10 }).subscribe((v) => {
+        const sub2 = service.makeKlipperRequest(req2).subscribe((v) => {
             r2 = v;
         });
-        const sub3 = service.makeKlipperRequest({ method: 'b', timeoutMs: 10 }).subscribe((v) => {
+        const sub3 = service.makeKlipperRequest(req3).subscribe((v) => {
             r3 = v;
         });
 
@@ -229,17 +233,17 @@ describe('KlipperProtocolService', () => {
 
         env.commResponse$.next('{"id": "abc-1"}');
         expectedSub1Closed = true;
-        expectedR1 = { kind: 'no-reply', reason: 'Strange response' };
+        expectedR1 = { kind: 'no-reply', reason: 'Strange response', req: req1 };
         check();
 
         env.commResponse$.next('{"id": "abc-2", "error": {"x": 3}}');
         expectedSub2Closed = true;
-        expectedR2 = { kind: 'error', error: { x: 3 } };
+        expectedR2 = { kind: 'error', error: { x: 3 }, req: req2 };
         check();
 
         env.commResponse$.next('{"id": "abc-3", "result": {"x": 3}}');
         expectedSub3Closed = true;
-        expectedR3 = { kind: 'result', result: { x: 3 } };
+        expectedR3 = { kind: 'result', result: { x: 3 }, req: req3 };
         check();
 
         // Check also that id is no longer known after one response
@@ -281,7 +285,7 @@ describe('KlipperProtocolService', () => {
         env.commDisconnected$.next();
 
         expect(sub1.closed).to.equal(true);
-        expect(r1).to.deep.equal({ kind: 'no-reply', reason: 'Disconnected' });
+        expect(r1).to.deep.equal({ kind: 'no-reply', reason: 'Disconnected', req: { method: 'a', timeoutMs: 10 } });
 
         await env.lifecycleEvents.onBootstrapPreDestroy();
     });
@@ -310,7 +314,7 @@ describe('KlipperProtocolService', () => {
         env.dateService.addMilliseconds(5);
 
         expect(sub1.closed).to.equal(true);
-        expect(r1).to.deep.equal({ kind: 'no-reply', reason: 'Timeout' });
+        expect(r1).to.deep.equal({ kind: 'no-reply', reason: 'Timeout', req: { method: 'a', timeoutMs: 10 } });
 
         await env.lifecycleEvents.onBootstrapPreDestroy();
     });

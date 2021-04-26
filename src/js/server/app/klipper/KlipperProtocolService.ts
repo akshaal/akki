@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Inject, Injectable } from 'injection-js';
 import { Observable, of, Subject, Subscriber } from 'rxjs';
-import { catchError, filter, retry, tap, timeout } from 'rxjs/operators';
+import { catchError, retry, tap, timeout } from 'rxjs/operators';
 import { EnvToken } from 'server/akjs/core/EnvToken';
 import { LifecycleEvents } from 'server/akjs/core/LifecycleEvents';
 import { Logger } from 'server/akjs/core/Logger';
@@ -20,13 +20,17 @@ export const ENV_KLIPPER_API_MAX_INACTIVITY_MS = new EnvToken({
 
 type Obj = Record<string, unknown>;
 
+export type KlipperRequest = Readonly<{ method: string; params?: Obj; timeoutMs: number }>;
+
 // NOTE: no-reply means that request is sent to the klipper, but no response received.
 // NOTE: while 'disconnected' means that request is not even sent.
-type RequestOutcome =
-    | Readonly<{ kind: 'result'; result: Obj }>
-    | Readonly<{ kind: 'error'; error: Obj }>
-    | Readonly<{ kind: 'no-reply'; reason: string }>
-    | 'disconnected';
+export type KlipperRequestOutcome =
+    | Readonly<{ kind: 'result'; result: Obj; req: KlipperRequest }>
+    | Readonly<{ kind: 'error'; error: Obj; req: KlipperRequest }>
+    | Readonly<{ kind: 'no-reply'; reason: string; req: KlipperRequest }>
+    | Readonly<{ kind: 'disconnected'; req: KlipperRequest }>;
+
+export type KlipperSubscribeRequest = Readonly<{ method: string; params?: Obj }>;
 
 const ID_BASE_SIZE = 5;
 
@@ -35,7 +39,7 @@ const SUBSCRIBE_TIMEOUT_MS = 1000;
 @Injectable()
 export class KlipperProtocolService {
     private readonly _klipperSubscriptionById = new Map<string, Subject<Obj>>();
-    private readonly _reqInProgressSubById = new Map<string, Subscriber<RequestOutcome>>();
+    private readonly _reqInProgressSubById = new Map<string, [KlipperRequest, Subscriber<KlipperRequestOutcome>]>();
     private readonly _idBase: string;
     private _idIdx = 0;
 
@@ -83,8 +87,9 @@ export class KlipperProtocolService {
     private _handleDisconnect(): void {
         // See NOTE for the type RequestOutcome for difference between 'disconnected ' and 'no-reply' with reason 'disconnected'.
         // The map will be cleared from teardown method, no need to clear it here.
-        const outcome: RequestOutcome = { kind: 'no-reply', reason: 'Disconnected' };
-        for (const subscriber of this._reqInProgressSubById.values()) {
+        for (const reqAndSubscriber of this._reqInProgressSubById.values()) {
+            const [req, subscriber] = reqAndSubscriber;
+            const outcome: KlipperRequestOutcome = { kind: 'no-reply', reason: 'Disconnected', req };
             subscriber.next(outcome);
             subscriber.complete();
         }
@@ -106,22 +111,24 @@ export class KlipperProtocolService {
         }
 
         const id = hasProperty(obj, 'id') && typeof obj.id === 'string' ? obj.id : '';
-        const subscriber = this._reqInProgressSubById.get(id);
+        const reqAndSubscriber = this._reqInProgressSubById.get(id);
 
-        if (subscriber) {
-            let outcome: RequestOutcome;
+        if (reqAndSubscriber) {
+            const [req, subscriber] = reqAndSubscriber;
+
+            let outcome: KlipperRequestOutcome;
             const result =
                 hasProperty(obj, 'result') && typeof obj.result === 'object' ? (obj.result as Obj) : undefined;
 
             if (typeof result === 'object') {
-                outcome = { kind: 'result', result };
+                outcome = { kind: 'result', result, req };
             } else {
                 const error =
                     hasProperty(obj, 'error') && typeof obj.error === 'object' ? (obj.error as Obj) : undefined;
                 if (typeof error === 'object') {
-                    outcome = { kind: 'error', error };
+                    outcome = { kind: 'error', error, req };
                 } else {
-                    outcome = { kind: 'no-reply', reason: 'Strange response' };
+                    outcome = { kind: 'no-reply', reason: 'Strange response', req };
                     this._logger.error('Strange response from Klipper', { response });
                 }
             }
@@ -144,19 +151,17 @@ export class KlipperProtocolService {
      * Prepares request to klipper. Request will be started upon each subscription. Request will be automatically unsubscribed
      * upon destruction of the container.
      */
-    public makeKlipperRequest(
-        req: Readonly<{ method: string; params?: Obj; timeoutMs: number }>,
-    ): Observable<RequestOutcome> {
+    public makeKlipperRequest(req: KlipperRequest): Observable<KlipperRequestOutcome> {
         const { method, params, timeoutMs } = req;
 
-        return new Observable<RequestOutcome>((subscriber) => {
+        return new Observable<KlipperRequestOutcome>((subscriber) => {
             const id = this._genNextId();
             const reqStr = JSON.stringify({ id, method, params: params ?? {} });
 
             if (this._klipperCommService.send(reqStr) === 'sent') {
-                this._reqInProgressSubById.set(id, subscriber);
+                this._reqInProgressSubById.set(id, [req, subscriber]);
             } else {
-                subscriber.next('disconnected');
+                subscriber.next({ kind: 'disconnected', req });
                 subscriber.complete();
             }
 
@@ -166,7 +171,7 @@ export class KlipperProtocolService {
             };
         }).pipe(
             timeout(timeoutMs, this._scheduler.rxjsScheduler),
-            catchError(() => of<RequestOutcome>({ kind: 'no-reply', reason: 'Timeout' })),
+            catchError(() => of<KlipperRequestOutcome>({ kind: 'no-reply', reason: 'Timeout', req })),
             this._lifecycleEvents.takeUntilDestroyed(),
         );
     }
@@ -174,7 +179,7 @@ export class KlipperProtocolService {
     /**
      * Subscribes for updates of the given method + params. Unlike 'makeKlipperRequest' method, subscription and requests occurs immediately.
      */
-    public subscribeKlipper(req: Readonly<{ method: string; params?: Obj }>): Observable<Obj> {
+    public subscribeKlipper(req: KlipperSubscribeRequest): Observable<Obj> {
         const { method, params } = req;
         const akkiSubId = this._genNextId();
 
@@ -192,7 +197,7 @@ export class KlipperProtocolService {
             params: { ...(params ?? {}), response_template: { akkiSubId } },
             timeoutMs: SUBSCRIBE_TIMEOUT_MS,
         }).subscribe((outcome) => {
-            if (outcome === 'disconnected') {
+            if (outcome.kind === 'disconnected') {
                 error('Klipper is already disconnected.', { req });
             } else if (outcome.kind === 'no-reply') {
                 error(`No reply from Klipper: ${outcome.reason}.`, { req });
