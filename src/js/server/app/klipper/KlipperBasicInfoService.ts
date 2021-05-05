@@ -7,6 +7,7 @@ import { LifecycleEvents } from 'server/akjs/core/LifecycleEvents';
 import { Logger } from 'server/akjs/core/Logger';
 import { asPrinterAttributeObservable } from './asPrinterAttributeObservable';
 import { KlipperCommService } from './KlipperCommService';
+import { KlipperEndpointsService } from './KlipperEndpointsService';
 import { KlipperProtocolService } from './KlipperProtocolService';
 import { KlipperUtils } from './KlipperUtils';
 
@@ -22,7 +23,8 @@ export class KlipperBasicInfoService {
 
     public constructor(
         private readonly _klipperCommService: KlipperCommService,
-        private readonly _klipperProtocolService: KlipperProtocolService,
+        private readonly _klipperProtocolService: KlipperProtocolService, // TODO: Don't use it directly, use KlipperEndpointService
+        private readonly _klipperEndpointsService: KlipperEndpointsService,
         private readonly _logger: Logger,
         private readonly _klipperUtils: KlipperUtils,
         @Inject(ENV_APP_VERSION) private readonly _appVersion: string,
@@ -52,26 +54,18 @@ export class KlipperBasicInfoService {
                 }
             });
 
-        this._klipperProtocolService
-            .subscribeKlipper({
-                method: 'objects/subscribe',
-                params: { objects: { webhooks: ['state', 'state_message'] } },
-            })
+        this._klipperEndpointsService
+            .subscribeObjects({ webhooks: ['state', 'state_message'] })
             .subscribe((outcome) => {
                 console.log(outcome);
             });
 
-        this._klipperProtocolService
-            .subscribeKlipper({ method: 'objects/subscribe', params: { objects: { toolhead: ['homed_axes'] } } })
-            .subscribe((outcome) => {
-                console.log('homed', outcome);
-            });
+        this._klipperEndpointsService.subscribeObjects({ toolhead: ['homed_axes'] }).subscribe((outcome) => {
+            console.log('homed', outcome);
+        });
 
-        this._klipperProtocolService
-            .subscribeKlipper({
-                method: 'objects/subscribe',
-                params: { objects: { extruder: ['temperature', 'target'], heater_bed: ['temperature', 'target'] } },
-            })
+        this._klipperEndpointsService
+            .subscribeObjects({ extruder: ['temperature', 'target'], heater_bed: ['temperature', 'target'] })
             .subscribe((outcome) => {
                 console.log('temp', outcome);
             });

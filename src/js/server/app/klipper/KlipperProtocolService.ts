@@ -18,7 +18,7 @@ export const ENV_KLIPPER_API_MAX_INACTIVITY_MS = new EnvToken({
     defaultValue: '8000',
 });
 
-type Obj = Record<string, unknown>;
+type Obj = Readonly<Record<string, unknown>>;
 
 export type KlipperRequest = Readonly<{ method: string; params?: Obj; timeoutMs: number }>;
 
