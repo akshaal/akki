@@ -21,6 +21,7 @@
         "bson",
         "camelcase",
         "eeprom",
+        "eventtime",
         "gargs",
         "gcode",
         "hrtime",

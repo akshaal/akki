@@ -45,35 +45,41 @@ export class KlipperBasicInfoService {
                 params: { client_info: { name: 'akki', version: this._appVersion } },
                 timeoutMs: INFO_CMD_TIMEOUT_MS,
             })
-            .subscribe((outcome) => {
-                if (outcome.kind === 'result') {
-                    const { result } = outcome;
+            .subscribe((resp) => {
+                if (resp.kind === 'result') {
+                    const { result } = resp;
                     this._logger.info(`Connected to Klipper ${result.software_version}.`);
                 } else {
-                    this._klipperUtils.logFailedRequestOutcome(outcome);
+                    this._klipperUtils.logFailedRequestOutcome(resp);
                 }
             });
 
         this._klipperEndpointsService
-            .subscribeObjects({ webhooks: ['state', 'state_message'] })
-            .subscribe((outcome) => {
-                console.log(outcome);
+            .subscribeObjects({ webhooks: ['state' as const, 'state_message' as const] })
+            .subscribe((resp) => {
+                console.log('st.stat', resp.status);
+                console.log('st.ev', resp.eventtime);
             });
 
-        this._klipperEndpointsService.subscribeObjects({ toolhead: ['homed_axes'] }).subscribe((outcome) => {
-            console.log('homed', outcome);
+        this._klipperEndpointsService.subscribeObjects({ toolhead: ['homed_axes' as const] }).subscribe((resp) => {
+            console.log('h.stat', resp.status);
+            console.log('h.ev', resp.eventtime);
         });
 
         this._klipperEndpointsService
-            .subscribeObjects({ extruder: ['temperature', 'target'], heater_bed: ['temperature', 'target'] })
-            .subscribe((outcome) => {
-                console.log('temp', outcome);
+            .subscribeObjects({
+                extruder: ['temperature' as const, 'target' as const],
+                heater_bed: ['temperature' as const, 'target' as const],
+            })
+            .subscribe((resp) => {
+                console.log('temp.stat', resp.status);
+                console.log('temp.ev', resp.eventtime);
             });
 
         this._klipperProtocolService
             .subscribeKlipper({ method: 'gcode/subscribe_output', params: {} })
-            .subscribe((outcome) => {
-                console.log('gcode output', outcome);
+            .subscribe((resp) => {
+                console.log('gcode output', resp);
             });
     }
 }
