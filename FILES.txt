@@ -1,0 +1,370 @@
+.editorconfig: Cross-editor coding style config; enforces indentation/line-endings/charset; auto-read by compatible IDEs.
+.eslintignore: ESLint ignore patterns; excludes temp/generated files from linting.
+.eslintrc.json: TypeScript ESLint config.
+.gitignore: Git ignore patterns; excludes deps/build output/temp files from vcs.
+.nycrc.json: NYC coverage config w/ min thresholds & file rules; enforces test coverage requirements.
+.vscode/settings.json: VS Code workspace config; test runner/formatter/spell-checker setup.
+FILES.txt: Project-wide file index; one-line descriptions per file/export; aids code discovery & onboarding.
+LICENSE: MIT License; permissive usage terms allow free use/modification/distribution; protects author from liability.
+package.json: NPM project manifest; deps, scripts, metadata & tool configs.
+package-lock.json: NPM auto-generated lockfile w/ exact dep versions & hashes; ensures reproducible installs via npm ci; updated by npm install.
+lint: Runs ESLint on src/.
+npm-build: Compiles TS to JS.
+npm-ci: Clean deps install w/ exact versions.
+npm-clean: Deletes build artifacts & logs.
+npm-install: Installs deps & updates lockfile.
+npm-upgrade: Interactive deps upgrade tool.
+open-vscode: Opens workspace in VS Code.
+prepare-prod: Prod deployment prep script; chains npm-ci, npm-build, git-tag copy; called by ansible.
+prettify: Runs Prettier on src/.
+run-dev: Starts dev env w/ auto-recompile & restart on file changes; sets version from git tags.
+run-prod: Starts prod app from compiled code; sets version from git or .git-tag fallback.
+test: Runs unit tests via npm test.
+test-coverage: Runs unit tests w/ coverage analysis; generates reports in ./coverage.
+test-watch: Runs unit tests in watch mode; auto-reruns on file changes; for TDD/development workflow.
+tsconfig.json: TypeScript compiler config; strict type checking, decorator support for DI; shared by tsc/ESLint/ts-mocha.
+docker-test-env/build: Builds versioned Docker test env image w/ SIMULAVR/Klipper/Octoprint; auto-cleans old images.
+docker-test-env/docker-ext-image-versions.env: External dependency version pins for test env; sourced by build/run, used in Dockerfile.
+docker-test-env/Dockerfile: Test env image definition w/ ARG-parameterized versions; builds simulator/firmware tools.
+docker-test-env/klipper.cfg: Klipper config for Docker test env; simulated cartesian printer hardware.
+docker-test-env/klipper-menuconfig-result: Klipper Kconfig build config; pre-saved menuconfig result; for firmware compilation.
+docker-test-env/run: Builds & runs test env; port-maps Octoprint, mounts shared dir, runs as current user.
+docker-test-env/run-in-docker.sh: Container entrypoint; starts simulavr/Klipper/Octoprint w/ auto-restart loop.
+src/js/custom-types/README: Dev guide for adding custom TS type decls; explains dir/file structure pattern for typeRoot.
+akjs/container/AbstractType.ts: AbstractType<T> represents abstract class constructors; enables abstract classes as DI tokens (Type<T> can't).
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.with() adds type providers (classes) to module.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.withValue() adds value provider to module.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.withClass() adds class provider to module.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.withExisting() adds alias provider to module.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.withFactory() adds factory provider to module.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.bootstrap() adds type providers as bootstraps.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.bootstrapValue() adds value provider as bootstrap.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.bootstrapClass() adds class provider as bootstrap.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.bootstrapExisting() adds alias provider as bootstrap.
+akjs/container/AkModuleBuilder.ts: AkModuleBuilder.bootstrapFactory() adds factory provider as bootstrap.
+akjs/container/AkModule.ts: AKModuleBuildingCallback type for fluent module definition callback; receives builder, returns builder.
+akjs/container/AkModule.ts: AkModule constructor creates immutable DI module w/ name, optional imports & builder callback.
+akjs/container/AkModule.ts: AkModule.name readonly string identifier for module; used for debug/tracking/dedup in ContainerBuilder.
+akjs/container/AkModule.ts: AkModule.providers readonly array of DI providers; available for injection but not auto-instantiated.
+akjs/container/AkModule.ts: AkModule.bootstrap readonly array of DI providers; auto-instantiated on container init w/ lifecycle hooks.
+akjs/container/AkModule.ts: AkModule.imports readonly array of imported modules; enables hierarchical composition, flattened by ContainerBuilder.
+akjs/container/AkModule.spec.ts: Tests AkModule; type safety w/ @ts-expect-error for all builder methods, runtime module construction.
+akjs/container/ContainerBuilder.ts: ContainerBuilder constructor flattens AkModule hierarchy, resolves providers, creates injector; 2-phase init allows early injector access.
+akjs/container/ContainerBuilder.ts: ContainerBuilder.injector readonly prop; available immediately after construction, before bootstraps instantiated.
+akjs/container/ContainerBuilder.ts: ContainerBuilder.finishConstruction() instantiates bootstraps, runs lifecycle hooks, returns Container w/ shutdown.
+akjs/container/ContainerBuilder.spec.ts: Tests ContainerBuilder; module flattening, provider types (regular/bootstrap/multi/factory), override semantics, lifecycle hooks, shutdown mechanics, error handling.
+akjs/container/ContainerDescription.ts: ContainerDescription constructor accepts arrays to be populated post-construction; enables 2-phase init pattern.
+akjs/container/ContainerDescription.ts: ContainerDescription.tokenDescriptions readonly array of token metadata; populated by ContainerBuilder post-construction.
+akjs/container/ContainerDescription.ts: ContainerDescription.moduleNames readonly array of module names in resolution order; last definition wins per token.
+akjs/container/ContainerDescription.ts: ContainerDescription.tokenDescriptionMap lazy-init map from token to metadata; validates single/multi provider usage in Injector.
+akjs/container/ContainerDescription.spec.ts: Tests ContainerDescription; lazy tokenDescriptionMap init, post-construction array mutation tolerance, correct map building.
+akjs/container/ContainerOptions.ts: ContainerOptions interface w/ shutdownPromiseWrapper; wraps shutdown promise for timeouts/logging/retry.
+akjs/container/ContainerShutdownInterface.ts: ContainerShutdownInterface constructor creates injectable shutdown interface; avoids direct container coupling, maintains DI principles.
+akjs/container/ContainerShutdownInterface.ts: ContainerShutdownInterface.requestShutdown() triggers container shutdown from within; idempotent (safe to call multiple times).
+akjs/container/Container.ts: Container interface defines fully-constructed DI container; returned by ContainerBuilder.finishConstruction(), separates construction from usage.
+akjs/container/Container.ts: Container.shutdownFinished$ hot observable emitting on shutdown completion/error; enables external shutdown monitoring.
+akjs/container/Container.ts: Container.description metadata about registered tokens; enables introspection of container contents.
+akjs/container/Container.ts: Container.injector DI injector for getting instances; primary way to access container-managed objects.
+akjs/container/Container.ts: Container.shutdown() requests graceful container shutdown; triggers lifecycle hooks, completes shutdownFinished$.
+akjs/container/InjectionToken.ts: InjectionToken<T> DI token w/ nominal typing; each instance unique by identity, prevents injection-js type hole.
+akjs/container/InjectionToken.spec.ts: Tests InjectionToken; token identity uniqueness, type safety w/ @ts-expect-error (prevents injection-js type hole).
+akjs/container/Injector.spec.ts: Tests Injector; get/getMulti/pushInto/getAsArray methods, single/multi provider distinction, method/token validation.
+akjs/container/Injector.ts: Injector.get() retrieves single instance for regular token; throws if used w/ multi provider.
+akjs/container/Injector.ts: Injector.getMulti() retrieves array of instances for multi token; throws if used w/ regular provider.
+akjs/container/Injector.ts: Injector.pushInto() pushes token instance(s) into array; handles both single/multi providers.
+akjs/container/Injector.ts: Injector.getAsArray() retrieves token instance(s) as array; handles both single/multi providers.
+akjs/container/OnBootstrapPostConstruct.spec.ts: Tests implementsOnBootstrapPostConstruct; type guard correctness w/ type narrowing, edge case safety (null/undef/wrong types).
+akjs/container/OnBootstrapPostConstruct.ts: OnBootstrapPostConstruct interface for bootstrap lifecycle; method called after all bootstraps instantiated.
+akjs/container/OnBootstrapPostConstruct.ts: implementsOnBootstrapPostConstruct() type guard detects interface impl; enables duck-typing lifecycle hook detection.
+akjs/container/OnBootstrapPreDestroy.ts: OnBootstrapPreDestroy interface for bootstrap lifecycle; method called during container shutdown.
+akjs/container/OnBootstrapPreDestroy.ts: implementsOnBootstrapPreDestroy() type guard detects interface impl; enables duck-typing lifecycle hook detection.
+akjs/container/OnBootstrapPreDestroy.spec.ts: Tests implementsOnBootstrapPreDestroy; type guard correctness w/ type narrowing, edge case safety (null/undef/wrong types).
+akjs/container/providers.ts: TypeProvider<T> type alias for class constructor DI provider; simplest provider form (just the class).
+akjs/container/providers.ts: ValueProvider<T, V> interface for pre-constructed value DI provider; supplies ready instances.
+akjs/container/providers.ts: ClassProvider<T, V> interface for class-based DI provider; supplies different class impl for token.
+akjs/container/providers.ts: ExistingProvider<T, V> interface for alias DI provider; reuses existing token binding.
+akjs/container/providers.ts: FactoryProvider<T, V> interface for factory-based DI provider; creates instances via function w/ deps.
+akjs/container/providers.ts: Provider union type of all DI provider types; used for type-safe provider collections in AkModule.
+akjs/container/testModuleResolvesAndBootstraps.ts: testModuleResolvesAndBootstraps() test helper adds standard module validation tests; eliminates boilerplate by providing common resolve/bootstrap/shutdown & module name uniqueness tests.
+akjs/container/TokenDescription.ts: TokenDescription interface defines token metadata; created by ContainerBuilder, held in ContainerDescription, used by Injector for validation & by bootstrap instantiation.
+akjs/container/TokenDescription.ts: TokenDescription.name readonly display name for token; used in debug logs/error msgs.
+akjs/container/TokenDescription.ts: TokenDescription.token readonly token for injector.get(); identifies registered provider.
+akjs/container/TokenDescription.ts: TokenDescription.multi readonly flag indicating multi-provider; validates get/getMulti method usage in Injector.
+akjs/container/TokenDescription.ts: TokenDescription.bootstrap readonly flag for startup instantiation; triggers lifecycle hooks when true.
+akjs/container/TokenDescription.ts: TokenDescription.moduleNames readonly array of provider module names; tracks source modules, supports multi-provider tracking.
+akjs/container/Token.ts: Token<T> union of Type/AbstractType/InjectionToken; avoids separate get methods per token type.
+akjs/core/ConsoleLogger.ts: ConsoleLogger class extends Logger; immediate console output impl w/ event counters, always-on debug.
+akjs/core/ConsoleLogger.ts: ConsoleLogger.debug() logs to console.debug w/ optional arg; avoids printing "undefined", increments counter.
+akjs/core/ConsoleLogger.ts: ConsoleLogger.info() logs to console.info w/ optional arg; avoids printing "undefined", increments counter.
+akjs/core/ConsoleLogger.ts: ConsoleLogger.warn() logs to console.warn w/ optional arg; avoids printing "undefined", increments counter.
+akjs/core/ConsoleLogger.ts: ConsoleLogger.error() logs to console.error w/ optional arg; avoids printing "undefined", increments counter.
+akjs/core/ConsoleLogger.ts: ConsoleLogger.isDebugEnabled() always returns true; enables all debug logging in this impl.
+akjs/core/ConsoleLogger.ts: ConsoleLogger.*EventsLogged public counters track log calls; enables monitoring via getLoggedEventCounts().
+akjs/core/ConsoleLogger.spec.ts: Tests ConsoleLogger; console method delegation, event counter increments, debug enablement, arg handling (no "undefined").
+akjs/core/CoreModule.ts: CoreModule foundational DI module; provides Logger/DateService/Scheduler/EnvTokenResolver/lifecycle; imported by other akjs modules.
+akjs/core/CoreModule.spec.ts: Tests CoreModule.
+akjs/core/DateService.ts: DateService class abstracts system time via DI; enables deterministic testing w/ DateServiceForTest replacement, prevents flaky time-dependent tests.
+akjs/core/DateService.ts: DateService.getCurrentDate() returns current Date; injectable time source, mockable for tests via DateServiceForTest override.
+akjs/core/DateServiceForTest.ts: DateServiceForTest class extends DateService; manual time control for tests, avoids flaky time-dependent tests.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.currentMilliseconds$ observable emits on time change; enables reactive testing of time-dependent code.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.currentMilliseconds getter returns controlled time in millis.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.currentSeconds getter returns controlled time in seconds.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.setMilliseconds() sets time to absolute millis; throws if backward, for deterministic tests.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.setSeconds() sets time to absolute seconds; throws if backward, for deterministic tests.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.addMilliseconds() advances time by millis; throws if negative, simulates time passage.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.addSeconds() advances time by seconds; throws if negative, simulates time passage.
+akjs/core/DateServiceForTest.ts: DateServiceForTest.getCurrentDate() overrides DateService; returns Date at controlled time, not real system time.
+akjs/core/DateServiceForTest.spec.ts: Tests DateServiceForTest; time manipulation (set/add), observable emission, backward-time prevention (throws), duplicate handling.
+akjs/core/DateService.spec.ts: Tests DateService; verifies getCurrentDate() returns real system time.
+akjs/core/DelayedLogger.ts: DelayedLogger class extends Logger; buffers logs until postConstruct to break DI circular deps, then becomes passthrough.
+akjs/core/DelayedLogger.ts: DelayedLogger.*EventsLogged getters return counters from underlying logger or 0; enables monitoring via getLoggedEventCounts().
+akjs/core/DelayedLogger.ts: DelayedLogger.isDebugEnabled() returns true until real logger ready; safe default prevents lost debug logs.
+akjs/core/DelayedLogger.ts: DelayedLogger.debug/info/warn/error() buffer logs pre-postConstruct, passthrough after; no lost logs during DI init.
+akjs/core/DelayedLogger.spec.ts: Tests DelayedLogger; buffering/flushing/passthrough behavior, lifecycle integration, event counter accuracy through state transitions.
+akjs/core/EnvToken.spec.ts: Tests EnvToken; toString() method, asFactoryProvider().
+akjs/core/EnvToken.ts: EnvTokenParams interface defines env token structure (id, env var name, description, defaultValue).
+akjs/core/EnvToken.ts: EnvToken class extends InjectionToken for env-based config; integrates process.env w/ DI w/ defaults & docs.
+akjs/core/EnvToken.ts: EnvToken.id readonly env var name; used by EnvTokenResolver to read from process.env.
+akjs/core/EnvToken.ts: EnvToken.description readonly human-readable docs; explains purpose of env var.
+akjs/core/EnvToken.ts: EnvToken.defaultValue readonly fallback value; used when env var not set in process.env.
+akjs/core/EnvToken.ts: EnvToken.toString() debug string repr; returns "EnvToken {id}".
+akjs/core/EnvToken.ts: EnvToken.asFactoryProvider() creates DI factory provider; uses EnvTokenResolver to resolve value.
+akjs/core/EnvTokenResolver.ts: EnvTokenResolver class resolves EnvTokens from process.env w/ default fallback; uses DelayedLogger to break DI circular deps.
+akjs/core/EnvTokenResolver.ts: EnvTokenResolver.resolve() returns env var value or default for EnvToken; optional NO-DEFAULT mode returns undef if missing.
+akjs/core/EnvTokenResolver.spec.ts: Tests EnvTokenResolver; env var resolution, default fallback, NO-DEFAULT mode, process.env undefined handling, logging integration, caching.
+akjs/core/env_tokens.ts: ENV_APP_VERSION token for app version via DI; resolved from env var or defaults to 'unknown'.
+akjs/core/LifecycleEvents.ts: LifecycleEvents abstract base for lifecycle mgmt; provides RxJS observables/flags/operators, separates observation from triggering.
+akjs/core/LifecycleEvents.ts: LifecycleEvents.postConstruct$ observable emits when container finishes init; subscribe to run post-construction logic after all bootstraps ready.
+akjs/core/LifecycleEvents.ts: LifecycleEvents.preDestroy$ observable emits when container shutting down; subscribe to run cleanup before container destroyed.
+akjs/core/LifecycleEvents.ts: LifecycleEvents.takeUntilDestroyed() RxJS operator auto-unsubscribes on preDestroy$; prevents memory leaks w/o manual cleanup in every service.
+akjs/core/LifecycleEvents.ts: LifecycleEvents.containerConstructed getter returns flag indicating postConstruct$ emitted; enables sync state checks w/o subscribing to observable.
+akjs/core/LifecycleEvents.ts: LifecycleEvents.containerDestroyed getter returns flag indicating preDestroy$ emitted; enables sync state checks to prevent ops after shutdown.
+akjs/core/LifecycleEventsImpl.spec.ts: Tests LifecycleEventsImpl; postConstruct$/preDestroy$ observables, containerConstructed/Destroyed flags, takeUntilDestroyed() auto-unsubscribe, lifecycle hook integration, subscription completion.
+akjs/core/LifecycleEventsImpl.ts: Impl OnBootstrapPostConstruct/PreDestroy to complete AsyncSubjects from LifecycleEvents; bridges container lifecycle to RxJS observables.
+akjs/core/LoggedEventCounts.ts: LoggedEventCounts interface is return type for Logger.getLoggedEventCounts(); defines event counter structure, ensures consistent reporting across logger impls.
+akjs/core/LoggedEventCounts.ts: LoggedEventCounts.debugEventsLogged count of debug log calls; enables test assertions & monitoring of debug logging activity.
+akjs/core/LoggedEventCounts.ts: LoggedEventCounts.infoEventsLogged count of info log calls; enables test assertions & monitoring of info logging activity.
+akjs/core/LoggedEventCounts.ts: LoggedEventCounts.warnEventsLogged count of warn log calls; enables test assertions & monitoring of warn logging activity.
+akjs/core/LoggedEventCounts.ts: LoggedEventCounts.errorEventsLogged count of error log calls; enables test assertions & monitoring of error logging activity.
+akjs/core/LoggerEvent.ts: LoggerEvent type defines log event structure; provides type-safe reusable format for storing/queuing events in tests/DelayedLogger.
+akjs/core/Logger.ts: Logger abstract base decouples logging interface from impl; enables swappable impls (console/file/test/delayed) via DI.
+akjs/core/Logger.ts: Logger.debugEventsLogged readonly counter for debug calls; enables metrics/monitoring of debug logging activity.
+akjs/core/Logger.ts: Logger.infoEventsLogged readonly counter for info calls; enables metrics/monitoring of info logging activity.
+akjs/core/Logger.ts: Logger.warnEventsLogged readonly counter for warn calls; enables metrics/monitoring of warn logging activity.
+akjs/core/Logger.ts: Logger.errorEventsLogged readonly counter for error calls; enables metrics/monitoring of error logging activity.
+akjs/core/Logger.ts: Logger.debug() logs debug msg w/ optional arg; must increment debugEventsLogged counter in impl.
+akjs/core/Logger.ts: Logger.info() logs info msg w/ optional arg; must increment infoEventsLogged counter in impl.
+akjs/core/Logger.ts: Logger.warn() logs warn msg w/ optional arg; must increment warnEventsLogged counter in impl.
+akjs/core/Logger.ts: Logger.error() logs error msg w/ optional arg; must increment errorEventsLogged counter in impl.
+akjs/core/Logger.ts: Logger.isDebugEnabled() returns if debug enabled; avoids expensive operations when debug disabled, impl-specific.
+akjs/core/Logger.ts: Logger.getLoggedEventCounts() returns LoggedEventCounts object; aggregates all counters for unified metrics reporting.
+akjs/core/LoggerForTest.spec.ts: Tests LoggerForTest; event collection, event counters, debugEnabled flag, optional arg handling.
+akjs/core/LoggerForTest.ts: LoggerForTest class extends Logger; collects log events in array for test assertions, prevents console output.
+akjs/core/LoggerForTest.ts: LoggerForTest.debugEnabled public flag controls debug event collection; enables testing conditional debug logging.
+akjs/core/LoggerForTest.ts: LoggerForTest.debugMethodCalls public counter tracks debug calls even when disabled; verifies debug call frequency.
+akjs/core/LoggerForTest.ts: LoggerForTest.*EventsLogged public counters track log calls per level; enables quantitative test assertions.
+akjs/core/LoggerForTest.ts: LoggerForTest.events public array stores LoggerEvent objects; provides log history for deep test assertions.
+akjs/core/LoggerForTest.ts: LoggerForTest.isDebugEnabled() returns debugEnabled flag value; implements Logger interface method.
+akjs/core/LoggerForTest.ts: LoggerForTest.debug/info/warn/error() capture logs to events array, increment counters; no console output, enables test verification.
+akjs/core/SchedulerForTest.ts: SchedulerForTest class extends Scheduler; virtual time impl w/ DateServiceForTest sync, enables fast deterministic async tests.
+akjs/core/SchedulerForTest.ts: SchedulerForTest.immediateDelay public property controls setImmediate delay in millis; enables event loop delay testing.
+akjs/core/SchedulerForTest.ts: SchedulerForTest.flush() processes all pending scheduled actions immediately; use to advance virtual time to next scheduled event.
+akjs/core/SchedulerForTest.ts: SchedulerForTest.rxjsScheduler getter returns TestScheduler; enables RxJS timer operators to use virtual time.
+akjs/core/SchedulerForTest.ts: SchedulerForTest.setTimeout() schedules callback at virtual time; executes instantly in real time, correct order in virtual time.
+akjs/core/SchedulerForTest.ts: SchedulerForTest.setImmediate() schedules callback w/ immediateDelay; executes instantly in real time, correct order in virtual time.
+akjs/core/SchedulerForTest.spec.ts: Tests SchedulerForTest; virtual time setTimeout/setImmediate/cancellation, RxJS scheduler integration, error on time change from within callback.
+akjs/core/Scheduler.spec.ts: Tests Scheduler; real-time setTimeout/setImmediate w/ cancellation, rxjsScheduler undefined validation, timing accuracy.
+akjs/core/Scheduler.ts: Cancellable interface w/ cancel() method; uniform cancellation API returned by all Scheduler scheduling methods.
+akjs/core/Scheduler.ts: Scheduler class wraps native timers w/ Cancellable interface; DI-injectable, replaceable w/ SchedulerForTest for deterministic async tests.
+akjs/core/Scheduler.ts: Scheduler.rxjsScheduler getter returns undefined; signals RxJS to use default scheduler, overridden in SchedulerForTest.
+akjs/core/Scheduler.ts: Scheduler.setTimeout() wraps native setTimeout w/ Cancellable return; avoids global clearTimeout, enables uniform cancellation.
+akjs/core/Scheduler.ts: Scheduler.setImmediate() wraps native setImmediate w/ Cancellable return; avoids global clearImmediate, enables uniform cancellation.
+akjs/debug/DebugEvent.ts: DebugEvent<T> interface w/ symbol type; base for type-safe debug events, extensible w/ additional props.
+akjs/debug/DebugEventBus.ts: RxJS event bus for debug events; broadcasts w/ logging only if debug enabled; type-safe via symbol types.
+akjs/debug/DebugEventBus.ts: DebugEventBus.event$ observable of all debug events; subscribe to observe, or use typeEvents() for filtered stream.
+akjs/debug/DebugEventBus.ts: DebugEventBus.broadcastAndLog() broadcasts event to subscribers & logs it; only if debug enabled, avoids overhead.
+akjs/debug/DebugEventBus.ts: DebugEventBus.typeEvents() returns filtered observable for specific event type; type-safe via symbol-based type guards.
+akjs/debug/DebugEventBus.ts: DebugEventBus.promiseEventOfType() returns promise for first event of type; enables await in tests for async ops.
+akjs/debug/ContainerDescriptionDumper.ts: Impl OnBootstrapPostConstruct; logs DI module order & provided tokens w/ [B]/[M] flags; skips if debug disabled.
+akjs/debug/ContainerDescriptionDumper.ts: ContainerDescriptionDumper.onBootstrapPostConstruct() logs modules/tokens w/ [B]/[M] flags; skips if debug disabled.
+akjs/debug/ContainerDescriptionDumper.spec.ts: Tests ContainerDescriptionDumper; debug output format (modules/tokens w/ [B]/[M] annotations), isDebugEnabled() optimization.
+akjs/debug/DebugModule.spec.ts: Tests DebugModule.
+akjs/debug/DebugModule.ts: DebugModule optional DI module; provides DebugEventBus, logs container/env tokens; for debugging DI configuration.
+akjs/debug/EnvTokensDumper.ts: Impl OnBootstrapPostConstruct; logs all env tokens w/ values (JSON-escaped) & sources (default/environment/module), alphabetically sorted; skips if debug disabled.
+akjs/debug/EnvTokensDumper.spec.ts: Tests EnvTokensDumper; env token logging (sources: default/environment/module), alphabetical sorting, JSON escaping, isDebugEnabled() optimization.
+akjs/express/ExpressModule.spec.ts: Tests ExpressModule.
+akjs/express/ExpressModule.ts: DI module for Express HTTP server; bootstraps ExpressServer w/ configurable bind host/port; accepts route providers via RouteMounter.
+akjs/express/ExpressServer.spec.ts: Tests ExpressServer; lifecycle hooks, routing, error handling; w/ ExpressServerForTest+supertest.
+akjs/express/ExpressServer.ts: ENV_HTTP_SERVER_BIND_HOST token for HTTP server bind host via DI; resolved from env var or a default value.
+akjs/express/ExpressServer.ts: ENV_HTTP_SERVER_BIND_PORT token for HTTP server bind port via DI; resolved from env var or a default value.
+akjs/express/ExpressServer.ts: ExpressServer DI-managed HTTP server w/ lifecycle hooks; trusts proxy, accepts optional RouteMounter multi-providers.
+akjs/express/ExpressServer.ts: ExpressServer.onBootstrapPostConstruct() starts server, mounts RouteMounter routes, logs bind address/port.
+akjs/express/ExpressServer.ts: ExpressServer.onBootstrapPreDestroy() gracefully closes HTTP server.
+akjs/express/RouteMounter.ts: RouteMounter abstract base for modular route registration via multi-provider DI; decouples routes from server.
+akjs/express/RouteMounter.ts: RouteMounter.mountOnRouter() abstract method for route registration on Express router.
+akjs/express/ExpressServerForTest.ts: ExpressServerForTest class extends ExpressServer; exposes request() for supertest; enables HTTP route testing w/o network I/O.
+akjs/express/ExpressServerForTest.ts: ExpressServerForTest.request() returns supertest interface for testing HTTP routes; enables request assertions w/o network I/O.
+akjs/express-app/ExpressAppModule.ts: Composite DI module bundling Express/Winston/Metrics/Debug modules; ready-to-use Express app setup.
+akjs/express-app/ExpressAppModule.spec.ts: Tests ExpressAppModule.
+akjs/metrics/MetricsModule.ts: DI module for Prometheus metrics; provides MetricsService; imported by modules exposing application metrics.
+akjs/metrics/MetricsModule.spec.ts: Tests MetricsModule.
+akjs/metrics/MetricsService.spec.ts: Tests MetricsService; lifecycle integration, per-instance registry isolation, Prometheus counter/gauge/summary, update$ observable.
+akjs/metrics/MetricsService.ts: Injectable Prometheus service w/ per-instance Registry isolation; lifecycle-aware, update$ for on-demand metric refresh.
+akjs/metrics/MetricsService.ts: MetricsService.update$ observable emits on each metrics request; subscribe to refresh metric values before scrape.
+akjs/metrics/MetricsService.ts: MetricsService.getMetrics() returns Prometheus metrics string, triggers update$ emission; returns empty if not active.
+akjs/metrics/MetricsService.ts: MetricsService.createGauge() creates Gauge metric registered to service's Registry; accepts prom-client config.
+akjs/metrics/MetricsService.ts: MetricsService.createCounter() creates Counter metric registered to service's Registry; accepts prom-client config.
+akjs/metrics/MetricsService.ts: MetricsService.createSummary() creates Summary metric registered to service's Registry; accepts prom-client config.
+akjs/metrics-route/MetricsRouteModule.ts: DI module for Prometheus /metrics HTTP route; provides RouteMounter; import to expose collected metrics for scraping.
+akjs/metrics-route/MetricsRouteModule.spec.ts: Tests MetricsRouteModule.
+akjs/metrics-route/MetricsRouteMounter.spec.ts: Tests MetricsRouteMounter; /metrics endpoint, content-type, service integration, lifecycle; w/ ExpressServerForTest+supertest.
+akjs/metrics-route/MetricsRouteMounter.ts: MetricsRouteMounter class extends RouteMounter; mounts GET /metrics route w/ Prometheus content-type; multi-provider impl for metrics HTTP exposure.
+akjs/metrics-route/MetricsRouteMounter.ts: MetricsRouteMounter.mountOnRouter() mounts GET /metrics endpoint; sets Prometheus content-type, returns MetricsService metrics string.
+akjs/logging-metrics/LoggingMetricsModule.ts: DI module for logging metrics; bootstraps LoggingMetricsService to expose log counts by level as Prometheus metrics.
+akjs/logging-metrics/LoggingMetricsModule.spec.ts: Tests LoggingMetricsModule.
+akjs/logging-metrics/LoggingMetricsService.ts: Bootstrapped service; exposes Logger event counts as Prometheus counter by level; monitors logging activity via metrics, no log parsing.
+akjs/logging-metrics/LoggingMetricsService.spec.ts: Tests LoggingMetricsService; lifecycle integration, Prometheus counter creation, log count tracking by level, metrics updates.
+akjs/misc/hasProperty.ts: hasProperty() type guard checks property existence w/ type narrowing; handles null/undefined, safer than raw 'in' operator.
+akjs/misc/hasProperty.spec.ts: Tests hasProperty(); verifies type guard behavior for existing/missing props, type narrowing, null/undefined safety.
+akjs/misc/HighResTime.ts: HighResTime type is readonly [secs, nanos] tuple; matches process.hrtime() format for sub-millisecond precision.
+akjs/misc/HighResTime.ts: subtractHighResTimes() subtracts HighResTime tuples w/ nanosecond normalization; use for time deltas in performance monitoring.
+akjs/misc/HighResTime.ts: addHighResTimes() adds HighResTime tuples w/ nanosecond normalization; use for time accumulation in performance monitoring.
+akjs/misc/HighResTime.ts: highResTimeToSeconds() converts HighResTime to decimal seconds; preserves sub-millisecond precision lost in Date/millis.
+akjs/misc/HighResTime.ts: highResTimeFromSeconds() converts decimal seconds to HighResTime; preserves sub-millisecond precision lost in Date/millis.
+akjs/misc/HighResTime.ts: highResTimeToMilliseconds() converts HighResTime to decimal millis; preserves sub-millisecond precision lost in Date/millis.
+akjs/misc/HighResTime.ts: highResTimeFromMilliseconds() converts decimal millis to HighResTime; preserves sub-millisecond precision lost in Date/millis.
+akjs/misc/HighResTime.spec.ts: Tests HighResTime; conversion functions (millis/secs ↔ tuple), arithmetic ops (add/subtract), nanosecond normalization.
+akjs/misc/HostPort.ts: HostPort interface defines network endpoint structure (host, port); base for protocol-specific interfaces like ProtoHostPort.
+akjs/misc/ProtoHostPort.ts: ProtoHostPort interface extends HostPort w/ protocol field; defines complete network endpoint (host, port, proto).
+akjs/misc/withPromiseTimeout.spec.ts: Tests withPromiseTimeout; promise resolve/reject before timeout, timeout triggering, cancellation cleanup.
+akjs/misc/withPromiseTimeout.ts: withPromiseTimeout() wraps promise w/ timeout via Promise.race; auto-cancels timer on completion, prevents hanging ops.
+akjs/misc/map2obj.ts: map2obj() converts Map to plain object via Object.fromEntries().
+akjs/nodejs-app/env_tokens.ts: ENV_SHUTDOWN_TIMEOUT_SECONDS token for graceful shutdown timeout via DI.
+akjs/nodejs-app/env_tokens.ts: ENV_STARTUP_TIMEOUT_SECONDS token for startup timeout via DI.
+akjs/nodejs-app/NodeJsApp.ts: NodeJsApp class base for Node.js app lifecycle; manages DI container, signals, error handling w/ exit codes, timeouts; extend to customize.
+akjs/nodejs-app/NodeJsApp.ts: NodeJsApp constructor accepts AkModule & optional process; creates app instance ready for run() or runAsync() call.
+akjs/nodejs-app/NodeJsApp.ts: NodeJsApp.containerBuilderCreated$ observable emits ContainerBuilder after creation, before bootstrap; enables early injector access.
+akjs/nodejs-app/NodeJsApp.ts: NodeJsApp.containerCreated$ observable emits Container after bootstrap; enables external lifecycle monitoring.
+akjs/nodejs-app/NodeJsApp.ts: NodeJsApp.run() fire-and-forget entry point; calls runAsync() w/o waiting; use for simplest app start.
+akjs/nodejs-app/NodeJsApp.ts: NodeJsApp.runAsync() async entry point; creates/bootstraps container, subscribes to signals/errors, enforces startup timeout.
+akjs/nodejs-app/NodeJsApp.spec.ts: Tests NodeJsApp; lifecycle (startup/shutdown/timeouts), signals, error handling (rejection/exception), exit codes; w/ mocked process.
+akjs/nodejs-app/NodeJsAppModule.spec.ts: Tests NodeJsAppModule.
+akjs/nodejs-app/NodeJsAppModule.ts: DI module for Node.js app lifecycle; provides startup/shutdown timeout env config.
+akjs/nextion/NextionDisplayService.spec.ts: Tests NextionDisplayService; connection lifecycle, auto-reconnect, error/disconnect handling, write ops, touch events, virtual time; shows async service testing w/ mocks.
+akjs/nextion/NextionDisplayService.ts: NextionTouchEvent interface defines touch event structure; isRelease flag distinguishes press from release.
+akjs/nextion/NextionDisplayService.ts: ENV_NEXTION_PORT token for Nextion device serial port path via DI; resolved from env var or a default value.
+akjs/nextion/NextionDisplayService.ts: ENV_NEXTION_PORT_AUTO_REOPEN_DELAY_MS token for auto-reconnect delay via DI; controls retry interval on connection loss.
+akjs/nextion/NextionDisplayService.ts: ENV_NEXTION_DISPLAY_AUTO_REFRESH_DELAY_MS token for display refresh interval via DI; forces queued writes to execute.
+akjs/nextion/NextionDisplayService.ts: OPEN_NEXTION_PORT_FUNCTION token for openNextionPort fn injection; enables mocking serial connection in tests.
+akjs/nextion/NextionDisplayService.ts: NEXTION_OPEN_PORT_COMPLETED_DEBUG_EVENT symbol for DebugEventBus; signals port open attempt completion.
+akjs/nextion/NextionDisplayService.ts: NEXTION_SET_VALUE_COMPLETED_DEBUG_EVENT symbol for DebugEventBus; signals setValue operation completion.
+akjs/nextion/NextionDisplayService.ts: NEXTION_CLOSE_COMPLETED_DEBUG_EVENT symbol for DebugEventBus; signals port close completion.
+akjs/nextion/NextionDisplayService.ts: BaseNextionDisplayService abstract class provides high-level Nextion display manipulation; subclass for testing or alternative impls.
+akjs/nextion/NextionDisplayService.ts: BaseNextionDisplayService.setTextColor() sets element text color via RGB565 conversion; converts pct100 [0-100] to 5/6/5-bit components w/ rounding.
+akjs/nextion/NextionDisplayService.ts: BaseNextionDisplayService.setText() sets element text value; auto-quotes strings in protocol command.
+akjs/nextion/NextionDisplayService.ts: BaseNextionDisplayService.setPic() sets picture component image by ID; changes displayed image via pic property.
+akjs/nextion/NextionDisplayService.ts: BaseNextionDisplayService.setBrightnessPct100() sets display backlight brightness [0-100]; clamps to valid range.
+akjs/nextion/NextionDisplayService.ts: NextionDisplayService injectable manages Nextion serial connection w/ auto-reconnect, queued writes, change detection, lifecycle hooks.
+akjs/nextion/NextionDisplayService.ts: NextionDisplayService.touchEvents$ observable emits touch events; subscribe to react to user touch interactions on display.
+akjs/nextion/NextionModule.spec.ts: Tests NextionModule.
+akjs/nextion/NextionModule.ts: DI module for Nextion display support; provides NextionDisplayService w/ env-based config.
+akjs/nextion/lib/codes.js: eventCodeMap - Map of Nextion event instruction codes (hex) to names; enables event type detection & name lookup in protocol parsing.
+akjs/nextion/lib/codes.js: responseCodeMap - Map of Nextion response instruction codes (hex) to names; enables response type detection & name lookup in protocol parsing.
+akjs/nextion/lib/index.ts: NextionInterface - Simplified type-safe Nextion API subset; decouples consumers from lib/* internals, enables easy mocking in tests.
+akjs/nextion/lib/index.ts: openNextionPort() creates Nextion connection from port name/path; single entry point hides UART construction complexity.
+akjs/nextion/lib/nextion.js: Nextion class high-level event-driven API for Nextion displays; auto-manages connection, forwards events (touch/error/disconnect), wraps UART.
+akjs/nextion/lib/nextion.js: Nextion constructor creates instance from UART; auto-binds device, sets up event forwarding to connected/disconnected/error/touchEvent.
+akjs/nextion/lib/nextion.js: Nextion.setValue() sets display variable/component value; sends command to device, returns promise.
+akjs/nextion/lib/nextion.js: Nextion.setComponentValue() convenience for setting component .val property; wraps setValue() w/ .val suffix.
+akjs/nextion/lib/nextion.js: Nextion.getValue() retrieves variable/component value from display; returns promise w/ string or numeric data.
+akjs/nextion/lib/nextion.js: Nextion.isOpen getter checks if UART connection active; use before sending commands.
+akjs/nextion/lib/nextion.js: Nextion.close() closes UART connection; unbinds port, returns promise.
+akjs/nextion/lib/nextion.js: Nextion.system property provides System instance for device power mgmt (sleep/wake) & system variables.
+akjs/nextion/lib/protocol.js: NextionProtocol class wraps bin-protocol for Nextion binary parsing; defines readers for events/responses/touch/strings/numbers.
+akjs/nextion/lib/protocol.js: read() parses raw Buffer from Nextion into typed EventResult/ResponseResult objects w/ human-readable names.
+akjs/nextion/lib/protocol.js: delimiter byte array [0xff,0xff,0xff] marks Nextion message boundaries; used for stream parsing in UART layer.
+akjs/nextion/lib/protocol.js: delimiterBuffer - Buffer version of delimiter; appended to outgoing messages, detected in incoming stream.
+akjs/nextion/lib/README: Code provenance doc; attributes upstream source (boneskull/nextion), documents local TS-friendly mods & bug fixes.
+akjs/nextion/lib/system.js: SYSTEM_VARIABLES - array of valid Nextion system var names; validates names in setSystemVariable().
+akjs/nextion/lib/system.js: System class for Nextion device power mgmt & system vars; separates system ops from component ops.
+akjs/nextion/lib/system.js: System.setSystemVariable() sets sys0/sys1/sys2 w/ validation; rejects invalid names/values before UART send.
+akjs/nextion/lib/system.js: System.setRandomRange() configures device random number generator range; validates unsigned int constraints.
+akjs/nextion/lib/system.js: System.random() gets random number from device; optionally sets range first via setRandomRange().
+akjs/nextion/lib/system.js: System.setNoTouchSleepTimer() configures auto-sleep timeout; converts millis to seconds for device.
+akjs/nextion/lib/system.js: System.sleep() puts device to sleep or wakes it; accepts boolean param for bidirectional control.
+akjs/nextion/lib/system.js: System.wake() wakes device from sleep; convenience wrapper calling sleep(false).
+akjs/nextion/lib/uart.js: DEFAULT_BAUD_RATE const for Nextion factory baud; defines standard 9600 rate; used by UART factory methods.
+akjs/nextion/lib/uart.js: DEFAULT_RETURN_COMMAND_RESULT const for Nextion response mode; controls command ack behavior; used by UART factory.
+akjs/nextion/lib/uart.js: REQUEST_TIMEOUT const for serial command timeout in ms; prevents hanging on unresponsive device.
+akjs/nextion/lib/uart.js: UART class extends EventEmitter; low-level serial wrapper for Nextion protocol; handles connection/timeouts/parsing, used by Nextion class.
+akjs/nextion/lib/uart.js: UART.from() factory creates UART from port name or Serialport; unified entry point for both string paths & objects.
+akjs/nextion/lib/uart.js: UART.fromPort() factory opens serial by name/path w/ auto-detection fallback; creates Serialport & wraps in UART.
+akjs/nextion/lib/uart.js: UART.fromSerial() factory wraps existing Serialport in UART; enables injection of pre-configured ports or mocks.
+akjs/nextion/lib/uart.js: UART.findPort() auto-detects likely Nextion serial port via regex; scans USB/COM ports when explicit port not provided.
+akjs/nextion/lib/uart.js: UART.isOpen getter checks serial connection state; use before commands to avoid errors on closed port.
+akjs/nextion/lib/uart.js: UART.setValue() sets Nextion var/component value; converts bool to int, sends command, returns promise.
+akjs/nextion/lib/uart.js: UART.getValue() retrieves Nextion var/component value via get command; returns promise w/ typed response data.
+akjs/nextion/lib/uart.js: UART.write() wraps serial write w/ promise & drain; ensures data flushed to device before resolving.
+akjs/nextion/lib/uart.js: UART.send() sends raw ASCII command w/ delimiter; fire-and-forget, no response wait, returns promise.
+akjs/nextion/lib/uart.js: UART.request() sends command(s) w/ timeout-based response wait; handles single/batch commands, returns typed result(s).
+akjs/nextion/lib/uart.js: UART.bind() starts listening on serial port w/ delimiter parsing; configures device (sleep=0, bkcmd), emits events.
+akjs/nextion/lib/uart.js: UART.unbind() stops serial listener & closes port; cleans up connection, emits disconnect, returns promise.
+akjs/nextion/lib/util.js: MAX_INT const for Nextion unsigned int limit; defines 32-bit max (4294967295); centralizes hardware constraint validation.
+akjs/nextion/lib/util.js: toHex() converts decimal to hex string w/ 0x prefix; pads to 4 chars; for logging/debugging instruction codes.
+akjs/nextion/lib/util.js: isValidPort() duck-type validator for Serialport-like objects; checks on/write/drain methods; enables mocking in tests.
+akjs/nextion/lib/util.js: isUnsignedInteger() validates unsigned int within Nextion MAX_INT; rejects negative/float/NaN; for device command validation.
+akjs/process/CpuUsageService.ts: CpuUsageService class wraps process.cpuUsage(); DI-injectable, mockable for deterministic CPU metrics tests.
+akjs/process/CpuUsageService.ts: CpuUsageService.get() returns NodeJS.CpuUsage w/ user/system microseconds; query current process CPU usage.
+akjs/process/CpuUsageService.spec.ts: Tests CpuUsageService; verifies get() returns valid CPU usage data.
+akjs/process/MemoryUsageService.ts: MemoryUsageService class wraps process.memoryUsage(); DI-injectable, mockable for deterministic memory metrics tests.
+akjs/process/MemoryUsageService.ts: MemoryUsageService.get() returns NodeJS.MemoryUsage w/ rss/heap/external bytes; query process memory usage.
+akjs/process/MemoryUsageService.spec.ts: Tests MemoryUsageService; verifies get() returns valid memory usage data.
+akjs/process/PerformanceObserverFactory.ts: PerformanceObserverFactory class wraps PerformanceObserver construction; DI-injectable, mockable for deterministic perf monitoring tests.
+akjs/process/PerformanceObserverFactory.ts: PerformanceObserverFactory.create() returns PerformanceObserver instance; creates observer for Node.js performance event monitoring.
+akjs/process/PerformanceObserverFactory.spec.ts: Tests PerformanceObserverFactory; delegation to native perf_hooks.PerformanceObserver.
+akjs/process/ProcessModule.spec.ts: Tests ProcessModule.
+akjs/process/ProcessModule.ts: DI module for Node.js process monitoring; provides injectable wrappers (CPU/memory/time/perf); enables testable process introspection via DI.
+akjs/process/TimeService.ts: TimeService class wraps process.hrtime/uptime; DI-injectable, replaceable w/ TimeServiceForTest for deterministic time tests.
+akjs/process/TimeService.ts: TimeService.elapsedHighResTimeSince() calcs elapsed time from start via process.hrtime(); returns HighResTime w/ nanosec precision.
+akjs/process/TimeService.ts: TimeService.nowHighResTime() returns current HighResTime via process.hrtime(); use for interval measurement w/ sub-ms precision.
+akjs/process/TimeService.ts: TimeService.uptime() returns Node.js process uptime in secs via process.uptime().
+akjs/process/TimeServiceForTest.ts: TimeServiceForTest class extends TimeService; virtual time impl w/ DateServiceForTest, enables fast deterministic hrtime tests.
+akjs/process/TimeServiceForTest.ts: TimeServiceForTest.markAsStart() sets reference point for uptime calculation; use to control start time in tests.
+akjs/process/TimeServiceForTest.ts: TimeServiceForTest.elapsedHighResTimeSince() override returns virtual time elapsed; deterministic intervals w/o real time.
+akjs/process/TimeServiceForTest.ts: TimeServiceForTest.nowHighResTime() override returns virtual HighResTime; converts DateServiceForTest millis to [sec, nano] tuple.
+akjs/process/TimeServiceForTest.ts: TimeServiceForTest.uptime() override returns virtual process uptime; calculates from markAsStart reference, not real process.uptime().
+akjs/process/TimeService.spec.ts: Tests TimeService; delegation to process.hrtime/uptime, timing accuracy.
+akjs/process-metrics/CpuMetricsService.ts: Bootstrapped service; exposes CPU usage as Prometheus gauges by pct; auto-calcs from µs deltas over time.
+akjs/process-metrics/CpuMetricsService.spec.ts: Tests CpuMetricsService; lifecycle integration, CPU pct calc, gauge registration, update$ observable.
+akjs/process-metrics/EventLoopMetricsService.ts: ENV_EVENT_LOOP_MONITORING_RESOLUTION_MS token for monitoring resolution via DI; balances measurement frequency vs overhead.
+akjs/process-metrics/EventLoopMetricsService.ts: EventLoopMetricsService bootstrapped service; exposes event loop lag as Prometheus Summary w/ percentiles; measures setImmediate delay to detect blocking.
+akjs/process-metrics/EventLoopMetricsService.spec.ts: Tests EventLoopMetricsService; lifecycle integration, event loop delay measurement, summary w/ quantiles, virtual time.
+akjs/process-metrics/GcMetricsService.ts: Bootstrapped service; exposes GC durations as Prometheus Summary w/ percentiles by type; uses PerformanceObserver.
+akjs/process-metrics/GcMetricsService.spec.ts: Tests GcMetricsService; lifecycle, GC type labeling, unknown type handling, Summary w/ percentiles, PerformanceObserver mocking.
+akjs/process-metrics/MemoryMetricsService.ts: Bootstrapped service; exposes process memory usage as Prometheus gauges (rss/heap/external); updates on-demand when metrics scraped.
+akjs/process-metrics/MemoryMetricsService.spec.ts: Tests MemoryMetricsService; lifecycle, memory gauge registration (rss/heap/external), Prometheus format, metric updates, ts-mockito.
+akjs/process-metrics/ProcessMetricsModule.ts: DI module for process metrics; bootstraps CPU/memory/GC/event-loop monitoring as Prometheus metrics; import for observability.
+akjs/process-metrics/ProcessMetricsModule.spec.ts: Tests ProcessMetricsModule.
+akjs/process-metrics/StartupMetricsService.ts: Bootstrapped service; exposes startup time & app version as Prometheus gauges; uses construction time for accuracy.
+akjs/process-metrics/StartupMetricsService.spec.ts: Tests StartupMetricsService; lifecycle, startup time calc (construction not bootstrap), Prometheus format, virtual time, debug logging.
+akjs/winston/WinstonModule.ts: DI module for Winston logging; provides WinstonLogger w/ colorized console + optional rotating file; replaces CoreModule's Logger for production.
+akjs/winston/WinstonLogger.ts: ENV_DEBUG_LOG_FILE_ENABLED token for debug file toggle via DI; defaults prod=false, dev=true.
+akjs/winston/WinstonLogger.ts: ENV_DEBUG_LOG_FILE_MAX_SIZE_M token for debug log max size (MB) via DI.
+akjs/winston/WinstonLogger.ts: ENV_DEBUG_LOG_FILE_MAX_FILES token for debug log rotation count via DI.
+akjs/winston/WinstonLogger.ts: ENV_DEBUG_LOG_FILENAME token for debug log file path via DI.
+akjs/winston/WinstonLogger.ts: ENV_CONSOLE_LOG_LEVEL token for console log level via DI.
+akjs/winston/WinstonLogger.ts: WinstonLogger extends Logger; winston impl w/ colorized console + optional rotating file, env-configurable, event counters.
+akjs/winston/WinstonLogger.ts: WinstonLogger.isDebugEnabled() returns if debug logging enabled; checks lowest log level.
+akjs/winston/WinstonLogger.ts: WinstonLogger.debug() logs debug msg w/ optional arg via winston; increments counter.
+akjs/winston/WinstonLogger.ts: WinstonLogger.info() logs info msg w/ optional arg via winston; increments counter.
+akjs/winston/WinstonLogger.ts: WinstonLogger.warn() logs warn msg w/ optional arg via winston; increments counter.
+akjs/winston/WinstonLogger.ts: WinstonLogger.error() logs error msg w/ optional arg via winston; increments counter.
+akjs/winston/WinstonLogger.spec.ts: Tests WinstonLogger; default values, event counters, debug enable/disable, console log levels, file/console config interaction.
+akjs/winston/WinstonModule.spec.ts: Tests WinstonModule.
+src/js/server/CustomAppModule.ts: Top-level DI module importing AppModule; stays unchanged in master for merge-friendly fork customizations.
+src/js/server/CustomAppModule.spec.ts: Tests CustomAppModule.
+src/js/server/index.ts: App entry point w/ CustomApp extending App; stays unchanged in master for merge-friendly fork customizations.
+app/App.ts: App class extends NodeJsApp; empty base for upstream mergeability, extend in index.ts for customization.
+app/DisplayManager.ts: Bootstrapped service; demo brightness toggle for Nextion display; lifecycle-aware placeholder for display logic.
+app/AppModule.ts: Base app module bundling ExpressApp/Nextion/DisplayManager; stays unchanged in master for merge-friendly upstream updates.
+app/AppModule.spec.ts: Tests AppModule.
